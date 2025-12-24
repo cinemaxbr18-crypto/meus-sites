@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meus Sites</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Fonte Google -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .modal {
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            opacity: 0;
+        }
+        .modal.active {
+            pointer-events: auto;
+            opacity: 1;
+        }
+        .loader {
+            border-top-color: #3B82F6;
+            -webkit-animation: spinner 1.5s linear infinite;
+            animation: spinner 1.5s linear infinite;
+        }
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800">
+
+    <!-- Navegação -->
+    <nav class="bg-white shadow-sm sticky top-0 z-40">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex-shrink-0 flex items-center gap-2">
+                    <i class="fa-solid fa-layer-group text-blue-600 text-2xl"></i>
+                    <h1 class="font-bold text-xl tracking-tight">Meus Links</h1>
+                </div>
+                <div>
+                    <button id="adminBtn" onclick="openLoginModal()" class="text-slate-500 hover:text-blue-600 transition-colors p-2 rounded-full">
+                        <i class="fa-solid fa-lock"></i> <span class="hidden sm:inline text-sm ml-1">Gerenciar</span>
+                    </button>
+                    <button id="logoutBtn" onclick="logoutAdmin()" class="hidden text-red-500 hover:text-red-700 transition-colors p-2 rounded-full font-medium text-sm">
+                        <i class="fa-solid fa-right-from-bracket"></i> Sair
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Conteúdo Principal -->
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-extrabold text-slate-900 sm:text-4xl">Galeria de Sites</h2>
+            <p class="mt-3 max-w-2xl mx-auto text-xl text-slate-500 sm:mt-4">
+                Coleção dos meus sites e projetos.
+            </p>
+        </div>
+
+        <div id="adminControls" class="hidden mb-8 bg-blue-50 border border-blue-200 rounded-lg p-4 flex justify-between items-center">
+            <span class="text-blue-800 font-medium"><i class="fa-solid fa-user-shield mr-2"></i>Modo Administrador Ativo</span>
+            <button onclick="openAddModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-200 flex items-center">
+                <i class="fa-solid fa-plus mr-2"></i> Adicionar Novo Site
+            </button>
+        </div>
+
+        <div id="loadingIndicator" class="flex justify-center py-12">
+            <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12"></div>
+        </div>
+
+        <div id="sitesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+
+        <div id="emptyState" class="hidden text-center py-16">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-200 mb-4">
+                <i class="fa-regular fa-folder-open text-2xl text-slate-500"></i>
+            </div>
+            <h3 class="text-lg font-medium text-slate-900">Nenhum site adicionado ainda</h3>
+            <p class="mt-1 text-slate-500">Clique em "Gerenciar" e use a senha para adicionar o primeiro.</p>
+        </div>
+    </main>
+
+    <footer class="bg-white mt-12 border-t border-slate-200 py-8">
+        <div class="max-w-6xl mx-auto px-4 text-center text-slate-400 text-sm">
+            &copy; <span id="year"></span> Minha Galeria de Sites. Todos os direitos reservados.
+        </div>
+    </footer>
+
+    <!-- MODAL: Login -->
+    <div id="loginModal" class="modal fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 px-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-100">
+            <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+                <h3 class="text-lg font-bold text-slate-800">Acesso Restrito</h3>
+                <button onclick="closeModal('loginModal')" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <p class="text-sm text-slate-500 mb-4">Digite a senha para gerenciar os links.</p>
+                <div class="mb-4">
+                    <input type="password" id="passwordInput" placeholder="Senha" 
+                        class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div id="loginError" class="hidden text-red-500 text-sm mb-4 bg-red-50 p-2 rounded border border-red-100">
+                    <i class="fa-solid fa-circle-exclamation mr-1"></i> Senha incorreta.
+                </div>
+                <button onclick="checkPassword()" class="w-full bg-slate-900 hover:bg-black text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                    Entrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Adicionar Site -->
+    <div id="addModal" class="modal fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 px-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100">
+            <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+                <h3 class="text-lg font-bold text-slate-800">Adicionar Novo Site</h3>
+                <button onclick="closeModal('addModal')" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Título do Site</label>
+                    <input type="text" id="siteTitle" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">URL do Site (Link)</label>
+                    <input type="url" id="siteUrl" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">URL da Imagem</label>
+                    <input type="url" id="siteImage" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Legenda / Descrição</label>
+                    <textarea id="siteDesc" rows="2" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+                </div>
+                <button onclick="saveSite()" id="saveBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors shadow-lg">
+                    Salvar Site
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Scripts -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Configuração Inicial
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let user = null;
+        let isAdmin = false;
+        let unsubscribeSnapshot = null;
+
+        const COLLECTION_PATH = ['artifacts', appId, 'public', 'data', 'user_sites'];
+
+        // --- AUTHENTICATION (RULE 3) ---
+        const initAuth = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Auth error:", error);
+            }
+        };
+
+        onAuthStateChanged(auth, (loggedUser) => {
+            user = loggedUser;
+            if (user) {
+                loadSites();
+            }
+        });
+
+        initAuth();
+
+        // --- FIRESTORE OPERATIONS ---
+
+        function loadSites() {
+            if (!user) return;
+
+            // Clean up previous listener if exists
+            if (unsubscribeSnapshot) unsubscribeSnapshot();
+
+            const q = query(
+                collection(db, ...COLLECTION_PATH), 
+                orderBy("createdAt", "desc")
+            );
+            
+            unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
+                const grid = document.getElementById('sitesGrid');
+                const loading = document.getElementById('loadingIndicator');
+                const empty = document.getElementById('emptyState');
+                
+                grid.innerHTML = '';
+                loading.style.display = 'none';
+
+                if (snapshot.empty) {
+                    empty.classList.remove('hidden');
+                } else {
+                    empty.classList.add('hidden');
+                    snapshot.forEach((doc) => {
+                        grid.innerHTML += createCardHTML(doc.id, doc.data());
+                    });
+                }
+            }, (error) => {
+                console.error("Firestore error:", error);
+                document.getElementById('loadingIndicator').innerHTML = '<p class="text-red-500">Erro de permissão ao carregar dados.</p>';
+            });
+        }
+
+        window.saveSite = async function() {
+            if (!user) return;
+
+            const title = document.getElementById('siteTitle').value;
+            const url = document.getElementById('siteUrl').value;
+            const image = document.getElementById('siteImage').value;
+            const desc = document.getElementById('siteDesc').value;
+            const btn = document.getElementById('saveBtn');
+
+            if (!title || !url) return;
+
+            btn.disabled = true;
+            try {
+                const finalImage = image || `https://ui-avatars.com/api/?name=${encodeURIComponent(title)}&background=random&size=512`;
+                await addDoc(collection(db, ...COLLECTION_PATH), {
+                    title,
+                    url,
+                    imageUrl: finalImage,
+                    description: desc,
+                    createdAt: serverTimestamp()
+                });
+                closeModal('addModal');
+                // Reset form
+                document.getElementById('siteTitle').value = '';
+                document.getElementById('siteUrl').value = '';
+                document.getElementById('siteImage').value = '';
+                document.getElementById('siteDesc').value = '';
+            } catch (error) {
+                console.error("Save error:", error);
+            } finally {
+                btn.disabled = false;
+            }
+        };
+
+        window.deleteSite = async function(docId) {
+            if (!user || !isAdmin) return;
+            if (confirm("Deseja excluir este link?")) {
+                try {
+                    await deleteDoc(doc(db, ...COLLECTION_PATH, docId));
+                } catch (error) {
+                    console.error("Delete error:", error);
+                }
+            }
+        };
+
+        // --- UI LOGIC ---
+
+        function createCardHTML(id, data) {
+            const imgUrl = data.imageUrl || 'https://via.placeholder.com/400x250';
+            const deleteBtn = isAdmin 
+                ? `<button onclick="deleteSite('${id}')" class="absolute top-2 right-2 bg-red-500 text-white w-8 h-8 rounded-full shadow hover:bg-red-600 z-10 flex items-center justify-center"><i class="fa-solid fa-trash-can"></i></button>` 
+                : '';
+
+            return `
+                <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden card-hover transition-all duration-300 flex flex-col h-full relative group">
+                    ${deleteBtn}
+                    <div class="h-48 overflow-hidden bg-slate-100">
+                        <img src="${imgUrl}" class="w-full h-full object-cover transition-transform group-hover:scale-105" onerror="this.src='https://ui-avatars.com/api/?name=Site&background=random'">
+                    </div>
+                    <div class="p-5 flex-1 flex flex-col">
+                        <h3 class="text-xl font-bold text-slate-900 mb-2">${data.title}</h3>
+                        <p class="text-slate-500 text-sm mb-4 flex-1 line-clamp-3">${data.description || ''}</p>
+                        <a href="${data.url}" target="_blank" class="block text-center w-full bg-white text-blue-600 border border-blue-600 font-semibold py-2 px-4 rounded-lg hover:bg-blue-50 transition-colors">
+                            Visitar Site
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.checkPassword = function() {
+            const pass = document.getElementById('passwordInput').value;
+            if (pass === 'senha1809') {
+                isAdmin = true;
+                closeModal('loginModal');
+                updateAdminUI();
+                loadSites();
+            } else {
+                document.getElementById('loginError').classList.remove('hidden');
+            }
+        };
+
+        window.logoutAdmin = function() {
+            isAdmin = false;
+            updateAdminUI();
+            loadSites();
+        };
+
+        function updateAdminUI() {
+            document.getElementById('adminControls').classList.toggle('hidden', !isAdmin);
+            document.getElementById('adminBtn').classList.toggle('hidden', isAdmin);
+            document.getElementById('logoutBtn').classList.toggle('hidden', !isAdmin);
+        }
+
+        window.openLoginModal = () => document.getElementById('loginModal').classList.add('active');
+        window.openAddModal = () => document.getElementById('addModal').classList.add('active');
+        window.closeModal = (id) => document.getElementById(id).classList.remove('active');
+        document.getElementById('year').textContent = new Date().getFullYear();
+    </script>
+</body>
+</html>
